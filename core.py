@@ -15,23 +15,20 @@ class core:
     FPS = 60
     fullscreen = False
     run = True
-    entities = []
-    player = player("Rye", [(WIDTH)/1.5, (HEIGHT)/1.5])
+    entities = entity.entities()
+    player = player("Rye", [(WIDTH)/2.1, (HEIGHT)/1.2])
 
 
     def draw(self):
         
         #pygame.draw.rect(self.WIN, (0, 0, 0), (pygame.Rect(self.WIDTH//2 - 5, 0, 10, self.HEIGHT)))
         self.WIN.fill((0, 0, 0))
-        for e in self.entities:
-            e.draw(self.WIN)
+        self.entities.draw(self.WIN)
         self.player.draw(self.WIN)
         pygame.display.update()
 
     def update(self):
-        for e in self.entities:
-            e.update()
-        self.player.update()
+        self.entities.update(self.WIDTH, self.HEIGHT)
 
     def handle_events(self, event):
         if event.type == pygame.QUIT:
@@ -61,20 +58,22 @@ class core:
 
     
     def start_game(self):
-        self.entities.append(entity.entity("Rye", [(self.WIDTH)/1.5, (self.HEIGHT)/1.5]))
+        self.entities._entities.append(entity.entity("Rye", [(self.WIDTH)/1.5, (self.HEIGHT)/1.5]))
+        self.entities._entities.append(self.player)
         
         
 
     def loop(self):
         clock = pygame.time.Clock()
-        run = True
+        self.run = True
         self.start_game()
-        while run:
+        while self.run:
             clock.tick(self.FPS)
             for event in pygame.event.get():
                 self.handle_events(event)
             self.update()
             self.draw()
+            print("FPS: ", clock.get_fps())
 
                 
 
