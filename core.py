@@ -16,7 +16,8 @@ class core:
     fullscreen = False
     run = True
     entities = entity.entities()
-    player = player("Rye", [(WIDTH)/2.1, (HEIGHT)/1.2])
+    player1 = player("Rye", [(WIDTH)/4, (HEIGHT)/1.2], "wasd")
+    player2 = player("Rye", [(WIDTH)/2, (HEIGHT)/1.2], "arrows")
 
 
     def draw(self):
@@ -24,7 +25,7 @@ class core:
         #pygame.draw.rect(self.WIN, (0, 0, 0), (pygame.Rect(self.WIDTH//2 - 5, 0, 10, self.HEIGHT)))
         self.WIN.fill((0, 0, 0))
         self.entities.draw(self.WIN)
-        self.player.draw(self.WIN)
+
         pygame.display.update()
 
     def update(self):
@@ -33,7 +34,9 @@ class core:
     def handle_events(self, event):
         if event.type == pygame.QUIT:
                     self.run = False
+                    pygame.display.quit()
                     pygame.quit()
+                    exit()
                     
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_f:
@@ -47,10 +50,11 @@ class core:
                     self.WIDTH, self.HEIGHT = self.WIDTH/1.2, self.HEIGHT/1.2
                     self.WIN = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
                     self.update_resolution(prev, [self.WIDTH, self.HEIGHT])
-        self.player.handle_input(event)
+        self.player1.handle_input(event)
+        self.player2.handle_input(event)
     
     def update_resolution(self, previous, new):
-        for e in self.entities:
+        for e in self.entities._entities:
             x_prop = e.coords[0]/previous[0]
             y_prop = e.coords[1]/previous[1]
             e.coords[0] = new[0] * x_prop 
@@ -58,8 +62,8 @@ class core:
 
     
     def start_game(self):
-        self.entities._entities.append(entity.entity("Rye", [(self.WIDTH)/1.5, (self.HEIGHT)/1.5]))
-        self.entities._entities.append(self.player)
+        self.entities._entities.append(self.player1)
+        self.entities._entities.append(self.player2)
         
         
 

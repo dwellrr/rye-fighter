@@ -1,3 +1,5 @@
+from queue import Empty
+import queue
 import pygame
 
 class entities:
@@ -9,9 +11,11 @@ class entities:
         for x in self._entities:
             if x != subject:
                 if (subject.coords[0] <= x.coords[0] + x.width) and (subject.coords[0] >= x.coords[0]):
-                    res.append(x)
+                    if ((subject.coords[1] <= x.coords[1] + x.height) and (subject.coords[1] >= x.coords[1])) or ((subject.coords[1] + subject.height <= x.coords[1] + x.height) and (subject.coords[1] + subject.height >= x.coords[1])):
+                        res.append(x)
                 elif (subject.coords[0] + subject.width <= x.coords[0] + x.width) and (subject.coords[0] + subject.width >= x.coords[0]):
-                    res.append(x)
+                    if ((subject.coords[1] <= x.coords[1] + x.height) and (subject.coords[1] >= x.coords[1])) or ((subject.coords[1] + subject.height <= x.coords[1] + x.height) and (subject.coords[1] + subject.height >= x.coords[1])):
+                        res.append(x)
         return res
 
     def update(self, WIDTH, HEIGHT):
@@ -50,6 +54,7 @@ class entity:
         self.acceleration = [0, 0]
         self.coords = _coords
         self.width = 50
+        self.height = 50
         self.falling = False
         self.isJumping = False
         self.atackNum = 0
@@ -58,13 +63,19 @@ class entity:
         self.hitbox = pygame.Rect(self.coords[0], self.coords[1], self.width, 50)
         self.sprite_name = name
         self.current_action = 'idle'
-        self.frame_queue = []
+        self.frame_count = 0
         self.health = 100
-        self.dmg = 0
+        self.action = ""
+        self.runF = [pygame.image.load("res/r1.png"), pygame.image.load("res/r2.png"), pygame.image.load("res/r3.png"), pygame.image.load("res/r4.png")]
+        self.idleF = [pygame.image.load("res/i1.png"), pygame.image.load("res/i2.png"), pygame.image.load("res/i3.png"), pygame.image.load("res/i4.png")]
+        self.attackF = [pygame.image.load("res/a1.png"), pygame.image.load("res/a2.png"), pygame.image.load("res/a3.png"), pygame.image.load("res/a4.png")]
+        self.jumpF = [pygame.image.load("res/j1.png"), pygame.image.load("res/j2.png"), pygame.image.load("res/j3.png"), pygame.image.load("res/j4.png"), pygame.image.load("res/f1.png"), pygame.image.load("res/f2.png")]
+        self.current_frame = self.runF[0]
+        self.current_frame = self.runF[0]
+        self.current_frame_alpha = self.current_frame.copy()
+        self.anim_offset = 0
 
-    def handle_dmg(dmg):
-        return #TODO
-    #def handle_animations()
+
     def update(self, WIDTH, HEIGHT):
         if self.direction == -1 and self.acceleration[0] > -self.speed:
             self.acceleration[0] -= 1
@@ -102,8 +113,61 @@ class entity:
 
         if(self.isJumping):
             self.acceleration[1] -= 30
+            self.frame_count = 0
             self.isJumping = False
+        
+        if(self.acceleration[0] > 0):
+            self.action = "r_r"
+        elif(self.acceleration[0] < 0):
+            self.action = "r_l"
+        else:
+            self.action = "idle"
 
+        if(self.falling):
+            self.action = "jump"
+        
+        if(self.atackTime > 0):
+            self.action = "attack"
+
+        if(self.anim_offset == 9):
+            self.frame_count += 1
+            self.anim_offset = 0
+
+        if(self.action == "r_l"):
+            if (self.frame_count >= 4):
+                self.frame_count = 0
+            self.current_frame = self.runF[self.frame_count]
+        elif(self.action == "r_r"):
+            if (self.frame_count >= 4):
+                self.frame_count = 0
+            self.current_frame = (pygame.transform.flip(self.runF[self.frame_count], True, False))
+        elif(self.action == "idle"):
+            if (self.frame_count >= 4):
+                self.frame_count = 0
+            self.current_frame = self.idleF[self.frame_count]
+        elif(self.action == "jump") and (self.acceleration[0] < 0):
+            if (self.frame_count >= 6):
+                self.frame_count = 5
+            self.current_frame = self.jumpF[self.frame_count]
+        elif(self.action == "jump") and (self.acceleration[0] > 0):
+            if (self.frame_count >= 6):
+                self.frame_count = 5
+            self.current_frame = pygame.transform.flip(self.jumpF[self.frame_count], True, False)
+        elif(self.action == "attack") and (self.acceleration[0] < 0):
+            if (self.frame_count >= 4):
+                self.frame_count = 0
+            self.current_frame = self.attackF[self.frame_count]
+        elif(self.action == "attack") and (self.acceleration[0] > 0):
+            if (self.frame_count >= 4):
+                self.frame_count = 0
+            self.current_frame = pygame.transform.flip(self.attackF[self.frame_count], True, False)
+        
+
+
+        self.current_frame_alpha = self.current_frame.copy()
+        alpha = 128
+        self.current_frame_alpha.fill((225, 225, 255, alpha), None, pygame.BLEND_RGBA_MULT)
+        self.anim_offset += 1
 
         self.coords[1] += self.acceleration[1]
         
@@ -135,4 +199,5 @@ class entity:
 
     def draw(self, WIN):
         
-        pygame.draw.rect(WIN, (255, 255, 255), self.hitbox)
+      
+        WIN.blit(self.current_frame_alpha, (self.coords[0], self.coords[1]))
